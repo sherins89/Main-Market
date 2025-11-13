@@ -13,7 +13,7 @@ export async function createOrder(date, note, userID) {
     [date, note, userId]
   );
 }
-// get all orders for a user
+// get all orders by a userID //
 export async function getOrdersByUserId(userId) {
   const { rows } = await db.query(
     `
@@ -28,7 +28,7 @@ export async function getOrdersByUserId(userId) {
   return rows;
 }
 
-// get one order by id
+// get one order by id //
 export async function getOrderById(id) {
   const {
     rows: [order],
