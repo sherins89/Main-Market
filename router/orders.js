@@ -1,6 +1,3 @@
-//All remaining test for orders - POST GET from home work//
-// Middlewares to be used requireuser and requirebody //
-
 import express from "express";
 import requireUser from "../middleware/requireUser.js";
 import requireBody from "../middleware/requireBody.js";
@@ -17,7 +14,11 @@ import {
 
 const router = express.Router();
 
-//Post order middleware // New order for user with date //
+/**
+ * 🔒 POST /orders
+ * - body must include date
+ * - creates a new order for the logged-in user
+ */
 router.post("/", requireUser, requireBody(["date"]), async (req, res, next) => {
   try {
     const { date, note } = req.body;
@@ -30,7 +31,22 @@ router.post("/", requireUser, requireBody(["date"]), async (req, res, next) => {
   }
 });
 
-// filter to check existing order //
+/**
+ * 🔒 GET /orders
+ * - sends array of all orders made by logged-in user
+ */
+router.get("/", requireUser, async (req, res, next) => {
+  try {
+    const orders = await getOrdersByUserId(req.user.id);
+    res.json(orders);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * helper: check order existence and ownership
+ */
 async function loadOrderAndCheckUser(req, res) {
   const id = Number(req.params.id);
 
@@ -48,7 +64,12 @@ async function loadOrderAndCheckUser(req, res) {
   return { order };
 }
 
-// GET // Order : id // with error message 404 and 403 //
+/**
+ * 🔒 GET /orders/:id
+ * - 404 if order does not exist
+ * - 403 if logged-in user is not owner
+ * - sends the order
+ */
 router.get("/:id", requireUser, async (req, res, next) => {
   try {
     const { order } = await loadOrderAndCheckUser(req, res);
@@ -60,6 +81,60 @@ router.get("/:id", requireUser, async (req, res, next) => {
   }
 });
 
-// POST /orders/:id/products with all errors asked //
+/**
+ * 🔒 POST /orders/:id/products
+ * - 404 if order does not exist
+ * - 403 if not owner
+ * - 400 if body missing productId or quantity
+ * - 400 if product does not exist
+ * - adds product to order and returns orders_products record
+ */
+router.post(
+  "/:id/products",
+  requireUser,
+  requireBody(["productId", "quantity"]),
+  async (req, res, next) => {
+    try {
+      const { order } = await loadOrderAndCheckUser(req, res);
+      if (!order) return;
 
-// TO DO // REMINDER //
+      const { productId, quantity } = req.body;
+
+      // check product exists
+      const product = await getProductById(productId);
+      if (!product) {
+        return res.status(400).send("Product does not exist");
+      }
+
+      const orderProduct = await addProductToOrder(
+        order.id,
+        product.id,
+        quantity
+      );
+
+      res.status(201).json(orderProduct);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * 🔒 GET /orders/:id/products
+ * - 404 if order does not exist
+ * - 403 if not owner
+ * - sends array of products in this order
+ */
+router.get("/:id/products", requireUser, async (req, res, next) => {
+  try {
+    const { order } = await loadOrderAndCheckUser(req, res);
+    if (!order) return;
+
+    const products = await getProductsInOrder(order.id);
+    res.json(products);
+  } catch (err) {
+    next(err);
+  }
+});
+
+export default router;

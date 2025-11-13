@@ -1,6 +1,6 @@
 import db from "#db/client";
 
-// add a product to an order //
+// add a product to an order (or increase quantity if already there)
 export async function addProductToOrder(orderId, productId, quantity) {
   const {
     rows: [orderProduct],
@@ -18,7 +18,7 @@ export async function addProductToOrder(orderId, productId, quantity) {
   return orderProduct;
 }
 
-// GET all products in an order //
+// get all products in an order
 export async function getProductsInOrder(orderId) {
   const { rows } = await db.query(
     `

@@ -1,7 +1,7 @@
 import db from "#db/client";
 
-// Create new order for user //
-export async function createOrder(date, note, userID) {
+// create a new order for a user
+export async function createOrder(date, note, userId) {
   const {
     rows: [order],
   } = await db.query(
@@ -12,8 +12,11 @@ export async function createOrder(date, note, userID) {
     `,
     [date, note, userId]
   );
+
+  return order;
 }
-// get all orders by a userID //
+
+// get all orders for a user
 export async function getOrdersByUserId(userId) {
   const { rows } = await db.query(
     `
@@ -28,7 +31,7 @@ export async function getOrdersByUserId(userId) {
   return rows;
 }
 
-// get one order by id //
+// get one order by id
 export async function getOrderById(id) {
   const {
     rows: [order],

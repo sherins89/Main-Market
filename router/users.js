@@ -5,7 +5,7 @@ import { createToken } from "../utils/jwt.js";
 
 const router = express.Router();
 
-// POST /users/register //
+// POST /users/register
 router.post(
   "/register",
   requireBody(["username", "password"]),
@@ -13,22 +13,18 @@ router.post(
     try {
       const { username, password } = req.body;
 
-      // create user // password is hashed //
       const user = await createUser(username, password);
 
-      // create a token //
       const token = createToken({
         id: user.id,
         username: user.username,
       });
 
-      res.status(201).json({ token });
+      res.status(201).send(token);
     } catch (err) {
-      // 23505 = unique violation (username already used)
       if (err.code === "23505") {
         return res.status(400).json({ error: "Username already taken" });
       }
-
       next(err);
     }
   }
@@ -53,7 +49,7 @@ router.post(
         username: user.username,
       });
 
-      res.json({ token });
+      res.send(token);
     } catch (err) {
       next(err);
     }
