@@ -45,7 +45,7 @@ router.post(
       const user = await verifyUserCredentials(username, password);
 
       if (!user) {
-        return res.status(400).json({ error: "Invalid username or password" });
+        return res.status(401).json({ error: "Invalid username or password" });
       }
 
       const token = createToken({
